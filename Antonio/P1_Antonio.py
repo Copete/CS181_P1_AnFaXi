@@ -381,7 +381,7 @@ EN = ElasticNet()
 EN_cv = GridSearchCV(EN, l1_grid, cv=5)
 
 
-# In[ ]:
+# In[145]:
 
 
 # Fit it to the new training data
@@ -396,7 +396,7 @@ print("Tuned ElasticNet R squared: {}".format(r2_EN_cv))
 print("Tuned ElasticNet MSE: {}".format(mse_EN_cv))
 
 
-# In[142]:
+# In[146]:
 
 
 # Optimize Ridge alpha on new training data. Try lower range
@@ -412,4 +412,215 @@ r2_ridge_cv = ridge_cv.score(X_holdout3, Y_holdout3)
 mse_ridge_cv = mean_squared_error(Y_holdout3, Y_pred3)
 print("Tuned Ridge R^2: {}".format(r2_ridge_cv))
 print("Tuned Ridge MSE: {}".format(mse_ridge_cv))
+
+
+# In[159]:
+
+
+# Drop features according to results from Ridge optimized by Grid Search Cross-Validation
+X_train0 = X_train3
+Y_train0 = Y_train3
+X_holdout0 = X_holdout3
+Y_holdout0 = Y_holdout3
+nx = np.array([])
+R2_train_rcv = np.array([])
+R2_holdout_rcv = np.array([])
+R2_train_RF = np.array([])
+R2_holdout_RF = np.array([])
+alpha_grid = {'alpha':np.logspace(-6,-1,50)}
+for i in range(31):
+    n0 = X_train0.shape[1]
+    nx = np.append(nx,n0)
+    print('No. of predictors:', n0)
+    ridge = Ridge(alpha=0.1,normalize=True) # Initialize Ridge regressor
+    rcv = GridSearchCV(ridge,alpha_grid,cv=5) # Initiate GridSearch CV regressor
+    rcv.fit(X_train0,Y_train0) #Fit data and tune alpha to optimal value
+    print('   Optimal Ridge parameter:', rcv.best_params_)
+    print('   Best score: ', rcv.best_score_)
+    # Predict on both training and holdout set and compute metrics
+    Y_pred0 = rcv.predict(X_holdout0)
+    R2_train_rcv0   = rcv.score(X_train0,   Y_train0)
+    R2_holdout_rcv0 = rcv.score(X_holdout0, Y_holdout0)
+    mse_rcv = mean_squared_error(Y_holdout0, Y_pred0)
+    print("   Tuned Ridge R^2 (train,holdout): {}, {}".format(R2_train_rcv0,R2_holdout_rcv0))
+    print("   Tuned Ridge MSE (holdout): {}".format(mse_rcv))
+    R2_train_rcv = np.append(R2_train_rcv, R2_train_rcv0)
+    R2_holdout_rcv = np.append(R2_holdout_rcv, R2_holdout_rcv0)
+    # Compare to Random Forest result
+    RF0 = RandomForestRegressor()
+    RF0.fit(X_train0, Y_train0)
+    R2_train_RF0 = RF0.score(X_train0, Y_train0)
+    R2_holdout_RF0 = RF0.score(X_holdout0, Y_holdout0)
+    print('   Random Forest R^2 (train,holdout): {}, {}'.format(R2_train_RF0,R2_holdout_RF0))
+    R2_train_RF = np.append(R2_train_RF, R2_train_RF0)
+    R2_holdout_RF = np.append(R2_holdout_RF, R2_holdout_RF0)
+    # Drop least important RF feature
+    i0 = (range(n0) != RF0.feature_importances_.argmin())
+    X_train0 = X_train0[:,i0]
+    X_holdout0 = X_holdout0[:,i0]
+
+
+# In[156]:
+
+
+# Try the same in non-regularized linear regression
+X_train0 = X_train3
+Y_train0 = Y_train3
+X_holdout0 = X_holdout3
+Y_holdout0 = Y_holdout3
+nx = np.array([])
+R2_train_LR = np.array([])
+R2_holdout_LR = np.array([])
+R2_train_RF = np.array([])
+R2_holdout_RF = np.array([])
+for i in range(31):
+    n0 = X_train0.shape[1]
+    nx = np.append(nx,n0)
+    print('No. of predictors:', n0)
+    LR0 = LinearRegression()
+    LR0.fit(X_train0, Y_train0)
+    R2_train_LR0 = LR0.score(X_train0, Y_train0)
+    R2_holdout_LR0 = LR0.score(X_holdout0, Y_holdout0) 
+    print('   NR Linear Regression R^2 (train,holdout): {}, {}'.format(R2_train_LR0,R2_holdout_LR0))
+    R2_train_LR = np.append(R2_train_LR, R2_train_LR0)
+    R2_holdout_LR = np.append(R2_holdout_LR, R2_holdout_LR0)
+    # Compare to Random Forest result
+    RF0 = RandomForestRegressor()
+    RF0.fit(X_train0, Y_train0)
+    R2_train_RF0 = RF0.score(X_train0, Y_train0)
+    R2_holdout_RF0 = RF0.score(X_holdout0, Y_holdout0)
+    print('   Random Forest R^2 (train,holdout): {}, {}'.format(R2_train_RF0,R2_holdout_RF0))
+    R2_train_RF = np.append(R2_train_RF, R2_train_RF0)
+    R2_holdout_RF = np.append(R2_holdout_RF, R2_holdout_RF0)
+    # Drop least important RF feature
+    i0 = (range(n0) != RF0.feature_importances_.argmin())
+    X_train0 = X_train0[:,i0]
+    X_holdout0 = X_holdout0[:,i0]
+
+
+# In[160]:
+
+
+plt.plot(nx,R2_train_rcv)
+plt.plot(nx,R2_train_LR)
+plt.plot(nx,R2_train_RF)
+plt.plot(nx,R2_holdout_rcv)
+plt.plot(nx,R2_holdout_LR)
+plt.plot(nx,R2_holdout_RF)
+plt.show()
+
+
+# In[174]:
+
+
+# Create array of feature indices ordered by importance
+print(X_train.shape, Y_train.shape, RF.feature_importances_.shape)
+imp = np.flip(np.argsort(RF.feature_importances_),0)
+print(imp[0])
+
+
+# In[276]:
+
+
+h0 = np.logical_not(X_train[:,imp[0]])
+h1 = np.logical_and(X_train[:,imp[0]],1)
+print(Y_train[h0].mean(), Y_train[h0].std())
+print(Y_train[h1].mean(), Y_train[h1].std())
+print(Y_train[h1].mean()-Y_train[h0].mean())
+plt.figure(figsize=(17,5))
+plt.hist(Y_train[h0],1000)
+plt.hist(Y_train[h1],1000)
+plt.yscale('symlog')
+plt.legend(['0','1'])
+plt.show()
+
+
+# In[243]:
+
+
+n_train = X_train.shape[0]
+n_test  = X_test.shape[0]
+for i in range(256):
+    h1 = (X_train[:,imp[i]] == 1)
+    t1 = (X_test[:,imp[i]] == 1)
+    print(i+1, ') Feature ', imp[i],': train ',sum(h1), 100*sum(h1)/n_train,'%, test ',sum(t1), 100*sum(t1)/n_test,'%')
+
+
+# In[294]:
+
+
+# Flip X such that Y(1) > Y(0) for all features
+n2 = X_train2.shape[1]
+X_trainb = (X_train == 1)
+for i in range(n2): 
+    b0 = X_trainb[:,imp[i]]
+    if Y_train[np.logical_not(b0)].mean() > Y_train[b0].mean():
+        X_trainb[b0] = np.logical_not(X_trainb[b0])
+
+
+# In[295]:
+
+
+'mean1'
+Y_train2_mean1 = np.array([[Y_train[np.logical_and(X_trainb[:,imp[i]],X_trainb[:,imp[j]])].mean() for i in range(n2)] for j in range(n2)])
+'mean0'
+Y_train2_mean0 = np.array([[Y_train[np.logical_and(np.logical_not(X_trainb[:,imp[i]]),np.logical_not(X_trainb[:,imp[j]]))].mean() for i in range(n2)] for j in range(n2)])
+'std1'
+Y_train2_std1  = np.array([[Y_train[np.logical_and(X_trainb[:,imp[i]],X_trainb[:,imp[j]])].std() for i in range(n2)] for j in range(n2)])
+'std0'
+Y_train2_std0  = np.array([[Y_train[np.logical_and(np.logical_not(X_trainb[:,imp[i]]),np.logical_not(X_trainb[:,imp[j]]))].std() for i in range(n2)] for j in range(n2)])
+
+
+# In[307]:
+
+
+print(np.nanmax(Y_train2_mean1), np.nanmin(Y_train2_mean1))
+plt.imshow(Y_train2_mean1)
+plt.show()
+
+
+# In[299]:
+
+
+print(np.nanmax(Y_train2_mean0), np.nanmin(Y_train2_mean0))
+plt.imshow(Y_train2_mean0)
+plt.show()
+
+
+# In[301]:
+
+
+print(np.nanmax(Y_train2_mean1-Y_train2_mean0), np.nanmin(Y_train2_mean1-Y_train2_mean0))
+plt.imshow(Y_train2_mean1-Y_train2_mean0)
+plt.show()
+
+
+# In[308]:
+
+
+# Try 3D plota
+from mpl_toolkits.mplot3d import Axes3D
+
+
+# In[338]:
+
+
+x = np.resize(np.array(range(1,32)).reshape(-1,1),(31,31))
+y = x.T
+z = Y_train2_mean1
+ax = plt.gca(projection='3d')
+ax.plot_surface(x,y,z)
+plt.show()
+
+
+# In[333]:
+
+
+zhelp("(Axes3D.plot_surface)")
+
+
+# In[328]:
+
+
+np.resize(np.array(range(1,32)).reshape(-1,1),(31,31)).T
 
