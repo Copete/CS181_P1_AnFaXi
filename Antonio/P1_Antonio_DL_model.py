@@ -48,6 +48,9 @@ mse_DL = []
 for n in n_nodes:
     model_DL = train_model_DL(X_train,Y_train,n)
 
+## TO SAVE TRAINED MODEL
+model_DL.save('model_DL.h5')
+
 ## TO PREDICT ON TEST DATA AND WRITE RESULTS TO CSV FILE
 Y_test_pred  = model_DL.predict(X_test)
 def write_to_file(filename, predictions):
