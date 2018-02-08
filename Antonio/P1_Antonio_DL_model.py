@@ -44,7 +44,7 @@ def train_model_DL(X_train,Y_train,n_nodes):
 ## SAMPLE USE OF TRAIN_MODEL_DL
 # Train with 1 layer, same nodes as input
 n_nodes = np.array([[X_train.shape[1]]])
-mse_DL = []
+model_DL = []
 for n in n_nodes:
     model_DL = train_model_DL(X_train,Y_train,n)
 

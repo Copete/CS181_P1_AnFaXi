@@ -12,13 +12,47 @@
 \maketitle{}
 
 
-\noindent This is the template you should use for submitting your practical assignments. 
-A full-credit assignment will go through each of these points and provide a thoughtful 
-clear answer.  Note that the limit for the report is 4 pages, please prioritize quality over 
-quantity in your submission.
+%\noindent This is the template you should use for submitting your practical assignments. A full-credit assignment will go through each of these points and provide a thoughtful clear answer.  Note that the limit for the report is 4 pages, please prioritize quality over quantity in your submission.
 
 \section{Technical Approach}
 
+We began by performing exploratory analysis on the sample dataset we were given, which consisted of a training set of 1 million molecules with 256 binary predictors, in addition to their SMILES string and the HOMO-LUMO gap we were seeking to predict. The test set consisted of 824,230 molecules with the same set of predictors as well as their SMILES string. The sample code we were given implemented a default Linear Regression model on the full set of 256 predictors, yielding an $R_\textrm{LR}^2 = 0.461 (\textrm{MSE}_\textrm{LR} = ?)$ on the full training set, and a default Random Forest regression with $R_\textrm{RF}^2 = 0.554 (\textrm{MSE}_\textrm{LR})$.
+
+Initial inspection found that out of 256 molecular features, 221 of them were unexpressed (i.e. had $x_i = 0$) for \emph{all} molecules, both in the training set and the test set. Dropping unimportant features would normally call for $K$-fold cross-validation across the training set to ensure those features are consistently unimportant in all cases. However, in the case of null values of certain features for every element of the training set, it is not only legitimate but necessary to drop those features from all further analysis, as fitting along null dimensions would constitute a form of overfitting.
+
+Having reduced the sample dataset to 31 expressed molecular features, we performed regularized and non-regularized linear regression with cross-validation\footnote{After initially trying 3-fold, 5-fold and 10-fold cross-validation, we settled on 5-fold cross-validation as the best compromise between accuracy and computational speed}, under the following methods:
+
+\begin{description}
+
+\item[Non-regularized linear regression] Yields $R^2 =  ...$
+\item[Ridge Regression]
+\item[Lasso]
+\item[Elastic Net]
+
+\end{description}
+
+The results from linear regression on the sample dataset led us into pursuing 2 parallel tracks:
+
+\begin{enumerate}
+
+\item Feature engineering: (Fangli)
+
+\item Non-linear methods: (Xihan, Antonio)
+
+Among these we tried 2 broad categories:
+
+\begin{enumerate}
+
+\item Tree based methods / Ensemble methods (Xihan)
+
+\item Deep learning (Antonio)
+
+\end{enumerate}
+
+\end{enumerate}
+
+
+{\itshape
 How did you tackle the problem? Credit will be given for:
 
   \begin{itemize}
@@ -55,7 +89,7 @@ How did you tackle the problem? Credit will be given for:
     \caption{Feature lists are a good way of illustrating problem specific tuning.}
   \end{table}
 
-
+}
 
 \section{Results}
 This section should report on the following questions: 
