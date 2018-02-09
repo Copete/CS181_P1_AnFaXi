@@ -4,7 +4,7 @@
 \usepackage{booktabs}
 \title{Practical 1: Regression \\ Predicting the Efficiency of Organic Photovoltaics}
 \author{Antonio (email, Camelot.ai username) \\
-	Fangli (email, Camelot.ai username) \\
+	Fangli (fgeng@g.harvard.edu, Camelot.ai fangligeng) \\
 	Xihan (xihanzhang@hsph.harvard.edu, Camelot.ai Xihan)}
 \begin{document}
 
@@ -35,8 +35,6 @@ The results from linear regression on the sample dataset consistently gave us lo
 
 \begin{enumerate}
 
-\item Feature engineering: \emph{(Fangli)}
-
 \item Non-linear methods: (Xihan, Antonio)
 
 Among these we concentrated on 2 broad categories:
@@ -62,9 +60,22 @@ We also plot the distribution of importance of predictors based on the baseline 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.7\textwidth]{his_feature_importance}
+\includegraphics[width=0.7\textwidth]{Antonio_RF_feature_imp.png}
 \caption{Histogram of feature importances from Random Forest}
 \label{fig:his_feature_importance}
 \end{figure}
+
+\begin{verbatim}
+(Code for plotting feature importances)
+# Plot RF feature importances
+plt.figure(figsize=(17,5))
+RF_fp1_imp = RF_fp1.feature_importances_
+imp_fp1 = np.flip(np.argsort(RF_fp1_imp),0)
+plt.hist(RF_fp1_imp,bins=np.logspace(-9.5,0,300))
+plt.yscale('symlog')
+plt.xscale('log')
+plt.show()
+\end{verbatim}
 
 We can see most portion of predictors have little importance, but combining them together would yield good precision on validtion set($R^2 = 0.936$, MSE=0.0106). This made us explore more on Deep learning method, which considers the interaction among features.
 
@@ -78,6 +89,19 @@ The result of this experiment showed that the MSE was not as sensitive to the ad
 
 
 \end{enumerate}
+\item Feature engineering: (Fangli)
+
+Based on the regression, random forest and deep learning neural models we trained on original dataset, we found that those 256 features didn't yield as good results as we expected. Therefore, we were thinking how much improvement we could get by adding more information and went to explore the molecule strings and RDKit package in Python. \\
+
+RDKit provides all different kinds of information and functions about a molecule by recognizing its SIMLES strings, including substructure searching, chemical reaction, enumeration of molecular resonance structures, and several sorts of fingerprints. After our research, we decided to extract Morgan fingerprint function,as it is widely used with SKLearn in Machine Learning and it carries the information which we think is most relevant to the efficiency of organic photovoltaics. \\ 
+
+The information that Morgan fingerprint provides is displayed below:
+\begin{enumerate}
+\item Connectivity: Element, numbers of heavy neighbors, numbers of Hs, charge, isotope, inRing
+\item Chemical features: Donor, Acceptor, Aromatic, Halogen, Basic, Acidic
+\item Taking into account the neighborhood of each atom\\
+\end{enumerate}
+The process is first taking the "SMILES" column from the training and test data and using RDKit to convert it into molecule objects. Then for each molecule object, we implemented command {\itshape rdkit.Chem.getmorganfingerprintasbitvect()} to get Morgan fingerprint. After iterate this process for each string, we appended the columns together to form a new input matrix. During Morgan fingerprint extraction process, We mainly adjusted the parameter "nBits" to 512, 2048 and 4096 aiming to test datasets with various preciseness levels. As preciseness level increases, the size of dataset also increase largely. Due to the computational constraints, we decided to slice the datasets into 7 parts in order to reuse and avoid the memory crash. \\
 
 \end{enumerate}
 
@@ -86,7 +110,7 @@ The result of this experiment showed that the MSE was not as sensitive to the ad
 How did you tackle the problem? Credit will be given for:
 
   \begin{itemize}
-  \item Diving deeply into a method (rather than just trying
+  \item Diving deeply into 	a method (rather than just trying
     off-the-shelf tools with default settings). This can mean 
     providing mathematical descriptions or pseudo-code.
   \item Making tuning and configuration decisions using thoughtful experimentation.  
@@ -126,6 +150,34 @@ This section should report on the following questions:
 
 (Antonio): Main result here should be a box plot with the MSE of different methods we tried. Models for the original data (256 features) should be different from models for the dataset of all the features.
 
+(Fangli):
+\begin{table}
+\centering
+\begin{tabular}{llr}
+ \toprule
+ Model &  & RMSE \\
+ \midrule
+ \textsc{linear regression w/ 2048 features} & & 0.12364\\
+ \textsc{linear regression w/ 429 features} & & 0.16869 \\
+ \textsc{random forest w/ 2048 features} & & 0.06435 \\
+ \textsc{neural network w/ 2048 features w/ 2 layers and 100 units in each layer} & & 0.03564  \\
+ \textsc{neural network w/ 2048 features w/ 1000 units} & &0.03553 \\
+ \textsc{neural network w/ 4096 features w/ 1024 units} & & 0.03461\\
+ \bottomrule
+\end{tabular}
+\caption{\label{tab:results} Result tables can compactly illustrate absolute performance, but a plot may be more effective at illustrating a trend.}
+\end{table}
+Table 2 displays the models we tested after we got the new feature information from RDKit. We first used 2048 features which is default in RDKit function and tested the linear regression. Its results gave us a better result (RMSE 0.1236) than that the best deep learning model (Antonio please put a number here) gave us with 256 features. It indicates the big loss of information using 256 features. \\
+
+For the purpose of further exploration and reduction of computational burden, we tried to drop the features which have coefficient = 0 from linear regression model results, however, only 1\% of the 2048 features can be dropped. We increased the threshold of dropping data until abs(coefficient)<=0.15, this finally gave a subset with 429 features. We then ran linear regression again with the new subset, but the final RMSE was increased by 30\%. We also ran random forest model with 512 features and 2048 features, but it showed that the 2048 features result was much better than the others. These two sets of comparison demonstrated that either 429 features selected by linear regression coefficient or 512 features directly given by RDKit fingerprint function was not informative enough. Therefore, we decided to test tune different models with 2048 features, which give us a relatively good amount of information for the molecules energy efficiency prediction. \\
+
+As discussed in the technical approach part, the experiments using original dataset (256b features) show that neural network with one layer could provide the most accurate results. So we decided to test neural network model With 2048 features. We set up 3 different configurations to conduct the experiments with neural network: the 1st experiment is 2 layer neural network with 2048 features and 100 units in each layer; the 2nd experiment is 1 layer neural network with 2048 features with 1000 units; the 3rd experiment is 1 layer neural network with 4096 features with 1024 units. Comparing the results between 1st and 2nd experiment, we found the layer number is not as important as unit number, which is consistent with what we found using the smaller number of features. Comparing the result between 2nd and 3rd experiment, we found that 2048 Morgan fingerprint is basically informative enough to predict, and 4096 features in more detail couldn't improve the prediction as much but meanwhile taking a much larger amount of time for computation.\\
+
+As 4096 features with 1 layers and 1024 nodes didn't provide the prediction as precise as we expected, we were turning to find additional features and found counted-based fingerprints could be a good option in addition to the bit-based fingerprint we used. Count-based fingerprint count the number of times a feature
+appears instead of simply that it appears, which could potentially provided new and important information to our prediction. We also wanted to try other algorithms like Principal Component Analysis to select more important features to reduce computational complexity, and to implement neural network models with 2 layer and 2000 nodes to allow more complex interactions between selected important features. However, due to the time constraints we had, we didn't realize those plans. \\
+
+As a summary, we found that the linear regression and random forest are good methods to rapidly select useful features. Neural network is much more accurate in non-linear regression, especially with large dataset and rich features condition. \\
+
 {\itshape
 \begin{itemize}
 \item Did you create and submit a set of
@@ -159,7 +211,6 @@ methods you tried compared to your baselines.
 \caption{\label{tab:results} Result tables can compactly illustrate absolute performance, but a plot may be more effective at illustrating a trend.}
 \end{table}
 }
-
 
 
 \section{Discussion} 
