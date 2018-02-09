@@ -31,7 +31,7 @@ Having reduced the sample dataset to 31 expressed molecular features, we perform
 
 \end{enumerate}
 
-The results from linear regression on the sample dataset consistently gave us relatively low predictive value, even when compared to generic random forest regression, which led us into pursuing 2 parallel tracks:
+The results from linear regression on the sample dataset consistently gave us low predictive value, even when compared to generic random forest regression, which led us into pursuing 2 parallel tracks:
 
 \begin{enumerate}
 
@@ -53,43 +53,22 @@ Among these we concentrated on 2 broad categories:
 
 This is essentially because Adaboost focus more on reducing bias and the other 3 methods focus on reducing varriance. From this we can draw conclusion that, we can focus more on tuning those hyper parameters that can efficiently reduce variance of the model. 
 
-Then we select random forest as main model to tune, and we use 5-fold cross validation to tune number of estimators (i.e. the total number of trees to take average on, which is key to reduce variance) on the newly generated predictor space with 2048 features within 1/7 of the total sample. Then we found that number of estimators=13 has the reasonable performance in this test. Here we met up with a variance-computaional complexity trade-off, that is: the more estimators we use, the less variance of random forest suffers from. Given the computational resources we have(fitting 1 random forest on full data set takes more than 5 hours), and given the total sample size is 7 times of the test set we tune the model, setting the number of estimators to be 150 is safe and reasonable. Since the sample size is much larger than feature size, even though the max depth equal to total number of features, each leaf still contain more than 500 samples, we didn't put computational resources on tuning max depth of each tree.
+Then we select random forest as main model to tune, and we use 5-fold cross validation to tune number of estimators (i.e. the total number of trees to take average on, which is key to reduce variance) on the newly generated predictor space with 2048 features within 1/7 of the total sample. Then we found that number of estimators=13 has the reasonable performance in this test. Here we met up with a variance-computaional complexity trade-off, that is: the more estimators we use, the less varriance of random forest suffers from. Given the computational resources we have(fitting 1 random forest on full data set takes more than 5 hours), and given the total sample size is 7 times of the test set we tune the model, setting the number of estimators to be 150 is safe and reasonable. Since the sample size is much larger than feature size, even though the max depth equal to total number of features, each leaf still contain more than 500 samples, we didn't put computational resources on tuning max depth of each tree.
 
 We also plot the distribution of importance of predictors based on the baseline random forest, the result is as below:
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.7\textwidth]{his_feature_importance}
-\includegraphics[width=0.7\textwidth]{Antonio_RF_feature_imp.png}
+\includegraphics[width=\textwidth]{his_feature_importance_log}
 \caption{Histogram of feature importances from Random Forest}
-\label{fig:his_feature_importance}
+\label{fig:his_feature_importance_log}
 \end{figure}
-
-\begin{verbatim}
-(Code for plotting feature importances)
-# Plot RF feature importances
-plt.figure(figsize=(17,5))
-RF_fp1_imp = RF_fp1.feature_importances_
-imp_fp1 = np.flip(np.argsort(RF_fp1_imp),0)
-plt.hist(RF_fp1_imp,bins=np.logspace(-9.5,0,300))
-plt.yscale('symlog')
-plt.xscale('log')
-plt.show()
-\end{verbatim}
 
 We can see most portion of predictors have little importance, but combining them together would yield good precision on validtion set($R^2 = 0.936$, MSE=0.0106). This made us explore more on Deep learning method, which considers the interaction among features.
 
 \item Deep learning: Since the predictors describe a broad set of molecular properties, it is natural to expect non-linear interactions between them to play a role in determining the HOMO--LUMO gap. For this reason we decided to explore the training of simple neural networks that would serve to model these interactions and got acquainted with the basics of Deep Learning as a tool to tackle this problem. In all cases, we used an architecture of one or more dense (fully-connected) hidden layers between the input layer of $N$ parameters and the output layer of 1 node for the response we wanted to model. For each node in the hidden layers, we used the widely used ``relu'' function ($f(x \le 0) = 0, f(x > 0) = x$) as activation function. We trained the model using the \emph{keras} module in Python, using the \emph{adam} optimizer for the learning rate, and setting aside 20\% of training data for validation. The model would be fitting for the weights of the connections between pairs of nodes in the network, which in the case of 1 hidden layer with $M$ nodes, would result in $(N + 1) \times M$ parameters to be trained.
 
 Taking a trial-and-error approach to setting the network architecture, we show the results of validation set MSE for 3 broad cases, using the 31 expressed features in the sample training dataset: 1) 1 hidden layer with variable number of nodes, 2) 2 hidden layers, with 31 nodes on the first and variable number of nodes on the second, and 3) 3 hidden layers, with 31 nodes on each of the first two, and variable number of nodes on the third.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics{Antonio_DL_mse.pdf}
-\caption{Histogram of feature importances from Random Forest}
-\label{fig:DL_mse}
-\end{figure}
-
 
 \emph{Figure with 3 plots for 1, 2 and 3 hidden layers}
 
