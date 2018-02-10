@@ -31,7 +31,7 @@ Having reduced the sample dataset to 31 expressed molecular features, we perform
 
 \end{enumerate}
 
-The results from linear regression on the sample dataset consistently gave us low predictive value, even when compared to generic random forest regression, which led us into pursuing 2 parallel tracks:
+The results from linear regression on the sample dataset consistently gave us low predictive value, even when compared to generic random forest regression, which led us into 2 parallel tracks:
 
 \begin{enumerate}
 
@@ -42,6 +42,7 @@ Among these we concentrated on 2 broad categories:
 \begin{enumerate}
 
 \item Tree-based Ensemble methods: 
+
 Given all the predictors are binary, which is coincide with the branch-like structure of decision tree--nodes as the predictors and samples as leaves, we had a deeper dive into decision tree. Single tree always choose the cutpoint to split the predictor space into two regions that leads to the greatest possible reduction in RSS(given by $\sum_{J}^{j=1}\sum_{i\in R_{j}}(y_{i}-\hat{y_{R_{j}}})^{2}$, where $\hat{y_{R_{j}}}$ is the mean prediction within the leaf)\footnote{An Introduction to Statistical Learning} . Thus, the more branch a tree has, the more precise the predcition would be. However, this deep-depth tree may overfit the training set and have high varriance among all trees. This is why we choose to fit ensemble methods, that can combine many trees and take the average of prediction made by each individual tree. 
 The baseline ensemble methods we tried for the first step are:
 \begin{enumerate}
@@ -79,13 +80,15 @@ We also plot the distribution of importance of predictors based on the baseline 
 
 We can see most portion of predictors have little importance($10^-8$ to $10^-2$), but combining them together would yield good precision on validtion set($R^2 = 0.936$, MSE=0.0106). This made us explore more on Deep learning method, which considers the interaction among features.
 
-\item Deep learning: Since the predictors describe a broad set of molecular properties, it is natural to expect non-linear interactions between them to play a role in determining the HOMO--LUMO gap. For this reason we decided to explore the training of simple neural networks that would serve to model these interactions and got acquainted with the basics of Deep Learning as a tool to tackle this problem. In all cases, we used an architecture of one or more dense (fully-connected) hidden layers between the input layer of $N$ parameters and the output layer of 1 node for the response we wanted to model. For each node in the hidden layers, we used the widely used ``relu'' function ($f(x \le 0) = 0, f(x > 0) = x$) as activation function. We trained the model using the \emph{keras} module in Python, using the \emph{adam} optimizer for the learning rate, and setting aside 20\% of training data for validation. The model would be fitting for the weights of the connections between pairs of nodes in the network, which in the case of 1 hidden layer with $M$ nodes, would result in $(N + 1) \times M$ parameters to be trained.
+\item Deep learning: 
+
+Since the predictors describe a broad set of molecular properties, it is natural to expect non-linear interactions between them to play a role in determining the HOMO--LUMO gap. For this reason we decided to explore the training of simple neural networks that would serve to model these interactions and got acquainted with the basics of Deep Learning as a tool to tackle this problem. In all cases, we used an architecture of one or more dense (fully-connected) hidden layers between the input layer of $N$ parameters and the output layer of 1 node for the response we wanted to model. For each node in the hidden layers, we used the widely used ``relu'' function ($f(x \le 0) = 0, f(x > 0) = x$) as activation function. We trained the model using the \emph{keras} module in Python, using the \emph{adam} optimizer for the learning rate, and setting aside 20\% of training data for validation. The model would be fitting for the weights of the connections between pairs of nodes in the network, which in the case of 1 hidden layer with $M$ nodes, would result in $(N + 1) \times M$ parameters to be trained.
 
 Taking a trial-and-error approach to setting the network architecture, we show the results of validation set MSE for 3 broad cases, using the 31 expressed features in the sample training dataset: 1) 1 hidden layer with variable number of nodes, 2) 2 hidden layers, with 31 nodes on the first and variable number of nodes on the second, and 3) 3 hidden layers, with 31 nodes on each of the first two, and variable number of nodes on the third.
 
 \emph{Figure with 3 plots for 1, 2 and 3 hidden layers}
 
-The result of this experiment showed that the MSE was not as sensitive to the addition of a second and third layer, as it was to the number of nodes in the first layer of the 1-hidden layer architecture. Given the computational limitations that were expected for a much larger set of features, we used this result to use the feature-engineered set to train only 1-layer models with a limited number of nodes in the same range as the number of predictors.
+The result of this experiment showed that the MSE was not as sensitive to the addition of a second and third layer, as it was to the number of nodes in the first layer of the 1-hidden layer architecture. Given the computational limitations that were expected for a much larger set of features, we used this result to use the feature-engineered set to train only 1-layer models with a limited number of nodes in the same range as the number of predictors. \\
 
 
 \end{enumerate}
