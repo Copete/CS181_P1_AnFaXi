@@ -188,21 +188,11 @@ As a summary, we found that the linear regression and random forest are good met
 \end{enumerate}
 
 \section{Discussion} 
+We performed exploratory analysis on the 256 features by fitting Linear Regression and Random forest as baseline models. For feature space, after filtering features with all 0 input, only 31 features left, which gave too little information compared to the 100000 data points. Thus, we use RDkit to generate 2048 features.  For model selection, we gave deeper dive into 2 tracks of non-linear models: Tree-based ensemble methods and deep learning, based on the fact: no matter tunning on linear methods the performance can't beat non-tuned random forest.
 
-{\itshape
-End your report by discussing the thought process behind your
-analysis. This section does not need to be as technical as the others 
-but should summarize why you took the approach that your did. Credit will be given for:
+Given the branch-like input nature, we first tried tree-based ensemble methods, which much more improve the performance on prediction. However, the fact that most portion of features are of little importance and the fact that each key in chemicals has high interaction with others, drove us to focus more on Deep learning method, which considers the interaction among features. The deep learning method did significantly improve the performance on prediction.
 
-  \begin{itemize}
-  \item Explaining the your reasoning for why you seqentially chose to
-    try the approaches you did (i.e. what was it about your initial
-    approach that made you try the next change?).  
-  \item Explaining the results.  Did the adaptations you tried improve
-    the results?  Why or why not?  Did you do additional tests to
-    determine if your reasoning was correct?  
-  \end{itemize}
- }
+One the other hand, the newly generated 2048 features also largely improved the precision of any kind of methods we experimented on 256 features. Thus our final prediction was made by deep learning method based on the 2048 features.
 
 \end{document}
 
