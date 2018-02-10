@@ -35,7 +35,7 @@ The results from linear regression on the sample dataset consistently gave us lo
 
 \begin{enumerate}
 
-\item Non-linear methods: (Xihan, Antonio)
+\item Non-linear methods: 
 
 Among these we concentrated on 2 broad categories:
 
@@ -89,7 +89,7 @@ The result of this experiment showed that the MSE was not as sensitive to the ad
 
 
 \end{enumerate}
-\item Feature engineering: (Fangli)
+\item Feature engineering: 
 
 Based on the regression, random forest and deep learning neural models we trained on original dataset, we found that those 256 features didn't yield as good results as we expected. Therefore, we were thinking how much improvement we could get by adding more information and went to explore the molecule strings and RDKit package in Python. \\
 
@@ -105,53 +105,10 @@ The process is first taking the "SMILES" column from the training and test data 
 
 \end{enumerate}
 
-
-{\itshape
-How did you tackle the problem? Credit will be given for:
-
-  \begin{itemize}
-  \item Diving deeply into 	a method (rather than just trying
-    off-the-shelf tools with default settings). This can mean 
-    providing mathematical descriptions or pseudo-code.
-  \item Making tuning and configuration decisions using thoughtful experimentation.  
-    This can mean carefully describing features added or hyperparameters tuned.
-  \item Exploring several methods. This can contrasting two approaches
-    or perhaps going beyond those we discussed in class.
-  \end{itemize}
-
-  \noindent Thoughtfully iterating on approaches is key.
-  If you used existing packages or referred to papers or blogs for ideas,
-  you should cite these in your report. 
-
-  \begin{table}
-    \centering
-    \begin{tabular}{@{}lll@{}}
-%      \toprule
-      &\multicolumn{2}{c}{Mention Features  } \\
-      & Feature & Value Set\\
-      \midrule
-      & Mention Head & $\mcV$ \\
-      & Mention First Word & $\mcV$ \\
-      & Mention Last Word & $\mcV$ \\
-      & Word Preceding Mention & $\mcV$ \\
-      & Word Following Mention & $\mcV$\\
-      & \# Words in Mention & $\{1, 2, \ldots \}$ \\
-      & Mention Type & $\mathcal{T}$ \\
-      \bottomrule
-      
-    \end{tabular}
-    \caption{Feature lists are a good way of illustrating problem specific tuning.}
-  \end{table}
-
-}
-
 \section{Results}
-This section should report on the following questions: 
+Table 1 displays the performance of models we tested after we got the new feature information from RDKit. 
 
-(Antonio): Main result here should be a box plot with the MSE of different methods we tried. Models for the original data (256 features) should be different from models for the dataset of all the features.
-
-(Fangli):
-\begin{table}
+\begin{table}[h]
 \centering
 \begin{tabular}{llr}
  \toprule
@@ -165,53 +122,53 @@ This section should report on the following questions:
  \textsc{neural network w/ 4096 features w/ 1024 units} & & 0.03461\\
  \bottomrule
 \end{tabular}
-\caption{\label{tab:results} Result tables can compactly illustrate absolute performance, but a plot may be more effective at illustrating a trend.}
+\caption{\label{tab:results} MSE of models tested using new feature information from RDKit}
 \end{table}
-Table 2 displays the models we tested after we got the new feature information from RDKit. We first used 2048 features which is default in RDKit function and tested the linear regression. Its results gave us a better result (RMSE 0.1236) than that the best deep learning model (Antonio please put a number here) gave us with 256 features. It indicates the big loss of information using 256 features. \\
 
-For the purpose of further exploration and reduction of computational burden, we tried to drop the features which have coefficient = 0 from linear regression model results, however, only 1\% of the 2048 features can be dropped. We increased the threshold of dropping data until abs(coefficient)<=0.15, this finally gave a subset with 429 features. We then ran linear regression again with the new subset, but the final RMSE was increased by 30\%. We also ran random forest model with 512 features and 2048 features, but it showed that the 2048 features result was much better than the others. These two sets of comparison demonstrated that either 429 features selected by linear regression coefficient or 512 features directly given by RDKit fingerprint function was not informative enough. Therefore, we decided to test tune different models with 2048 features, which give us a relatively good amount of information for the molecules energy efficiency prediction. \\
+\begin{enumerate}
+\item Feature set selection
 
-As discussed in the technical approach part, the experiments using original dataset (256b features) show that neural network with one layer could provide the most accurate results. So we decided to test neural network model With 2048 features. We set up 3 different configurations to conduct the experiments with neural network: the 1st experiment is 2 layer neural network with 2048 features and 100 units in each layer; the 2nd experiment is 1 layer neural network with 2048 features with 1000 units; the 3rd experiment is 1 layer neural network with 4096 features with 1024 units. Comparing the results between 1st and 2nd experiment, we found the layer number is not as important as unit number, which is consistent with what we found using the smaller number of features. Comparing the result between 2nd and 3rd experiment, we found that 2048 Morgan fingerprint is basically informative enough to predict, and 4096 features in more detail couldn't improve the prediction as much but meanwhile taking a much larger amount of time for computation.\\
+To select best feature set, we test the performance of the model we have experimented on as mentioned in Technical Approach: 
+\begin{enumerate}
+\item Linear Regression
 
-As 4096 features with 1 layers and 1024 nodes didn't provide the prediction as precise as we expected, we were turning to find additional features and found counted-based fingerprints could be a good option in addition to the bit-based fingerprint we used. Count-based fingerprint count the number of times a feature
-appears instead of simply that it appears, which could potentially provided new and important information to our prediction. We also wanted to try other algorithms like Principal Component Analysis to select more important features to reduce computational complexity, and to implement neural network models with 2 layer and 2000 nodes to allow more complex interactions between selected important features. However, due to the time constraints we had, we didn't realize those plans. \\
+We first used 2048 features (which is default in RDKit function) and tested the linear regression. Its results gave us a better result (RMSE 0.1236) than that the best deep learning model (Antonio please put a number here) gave us with 256 features. It indicates the big loss of information using 256 features. \\
+For the purpose of further exploration and reduction of computational burden, we tried to drop the features which have coefficient = 0 from linear regression model results, however, only 1\% of the 2048 features can be dropped. We increased the threshold of dropping data until abs(coefficient)<=0.15, this finally gave a subset with 429 features. We then ran linear regression again with the new subset, but the final RMSE was increased by 30\%. 
+
+\item Random Forest
+
+We also ran random forest model with 512 features and 2048 features, but it showed that the 2048 features result was much better than the others. 
+\end{enumerate}
+
+These two sets of comparison demonstrated that either 429 features selected by linear regression coefficient or 512 features directly given by RDKit fingerprint function was not informative enough. Therefore, we decided to test tune different models with 2048 features, which give us a relatively good amount of information for the molecules energy efficiency prediction. \\
+
+\item Tuning on neural network
+
+As discussed in the technical approach part, the experiments using original dataset (256b features) show that neural network with one layer could provide the most accurate results. So we decided to test neural network model With 2048 features. 
+
+We set up 3 different configurations to conduct the experiments with neural network: 
+\begin{enumerate}
+\item 2 layer neural network with 2048 features and 100 units in each layer; 
+\item 1 layer neural network with 2048 features with 1000 units; 
+\item 1 layer neural network with 4096 features with 1024 units. 
+\end{enumerate}
+Comparing the results between 1st and 2nd experiment, we found the layer number is not as important as unit number, which is consistent with what we found using the smaller number of features. Comparing the result between 2nd and 3rd experiment, we found that 2048 Morgan fingerprint is basically informative enough to predict, and 4096 features in more detail couldn't improve the prediction as much but meanwhile taking a much larger amount of time for computation.
+
+As 4096 features with 1 layers and 1024 nodes didn't provide the prediction as precise as we expected, we were turning to find additional features and found counted-based fingerprints could be a good option in addition to the bit-based fingerprint we used. Count-based fingerprint count the number of times a feature appears instead of simply that it appears, which could potentially provided new and important information to our prediction. \\
+
+\item Other methods not realized
+
+We also wanted to try other algorithms like Principal Component Analysis to select more important features to reduce computational complexity, and to implement neural network models with 2 layer and 2000 nodes to allow more complex interactions between selected important features. However, due to the time constraints we had, we didn't realize those plans. \\
+
+\item Summary
 
 As a summary, we found that the linear regression and random forest are good methods to rapidly select useful features. Neural network is much more accurate in non-linear regression, especially with large dataset and rich features condition. \\
 
-{\itshape
-\begin{itemize}
-\item Did you create and submit a set of
-  predictions? 
-  
 
-\item  Did your methods give reasonable performance?  
-\end{itemize}
+\item Box Plots for the performance of other tested models
 
-\noindent You must have \textit{at least one plot or table}
-that details the performances of different methods tried. 
-Credit will be given for quantitatively reporting (with clearly
-labeled and captioned figures and/or tables) on the performance of the
-methods you tried compared to your baselines.
-
-
-
-\begin{table}
-\centering
-\begin{tabular}{llr}
- \toprule
- Model &  & Acc. \\
- \midrule
- \textsc{Baseline 1} & & 0.45\\
- \textsc{Baseline 2} & & 2.59 \\
- \textsc{Model 1} & & 10.59  \\
- \textsc{Model 2} & &13.42 \\
- \textsc{Model 3} & & 7.49\\
- \bottomrule
-\end{tabular}
-\caption{\label{tab:results} Result tables can compactly illustrate absolute performance, but a plot may be more effective at illustrating a trend.}
-\end{table}
-}
-
+(Antonio): Main result here should be a box plot with the MSE of different methods we tried. Models for the original data (256 features) should be different from models for the dataset of all the features.
+\end{enumerate}
 
 \section{Discussion} 
 
