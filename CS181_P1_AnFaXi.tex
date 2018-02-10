@@ -55,12 +55,12 @@ To reduce the computaion load, we fit the baseline models on the 31 features aft
 
 This is essentially because Adaboost focus more on reducing bias and the other 3 methods focus on reducing varriance. From this we can draw conclusion that, we can focus more on tuning those hyper parameters that can efficiently reduce variance of the model. The MSE of the 4 models are as below: 
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.6\textwidth]{MSE_ensemble}
-\caption{Bar Plot of the 4 Baseline Tree-based Ensemble Methods}
-\label{fig:MSE_ensemble}
-\end{figure}
+%\begin{figure}[h]
+%\centering
+%\includegraphics[width=0.6\textwidth]{MSE_ensemble}
+%\caption{Bar Plot of the 4 Baseline Tree-based Ensemble Methods}
+%\label{fig:MSE_ensemble}
+%\end{figure}
 
 
 
@@ -86,7 +86,12 @@ Since the predictors describe a broad set of molecular properties, it is natural
 
 Taking a trial-and-error approach to setting the network architecture, we show the results of validation set MSE for 3 broad cases, using the 31 expressed features in the sample training dataset: 1) 1 hidden layer with variable number of nodes, 2) 2 hidden layers, with 31 nodes on the first and variable number of nodes on the second, and 3) 3 hidden layers, with 31 nodes on each of the first two, and variable number of nodes on the third.
 
-\emph{Figure with 3 plots for 1, 2 and 3 hidden layers}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.5\textwidth]{Antonio_DL_mse.pdf}
+\caption{Experimentation on DL Neural Network architecture}
+\label{fig:DL_mse}
+\end{figure}
 
 The result of this experiment showed that the MSE was not as sensitive to the addition of a second and third layer, as it was to the number of nodes in the first layer of the 1-hidden layer architecture. Given the computational limitations that were expected for a much larger set of features, we used this result to use the feature-engineered set to train only 1-layer models with a limited number of nodes in the same range as the number of predictors. \\
 
@@ -108,25 +113,34 @@ The process is first taking the "SMILES" column from the training and test data 
 
 \end{enumerate}
 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{Results_AC.pdf}
+\caption{Overall results for different regression methods}
+\label{fig:his_feature_importance}
+\end{figure}
+
+
 \section{Results}
 Table 1 displays the performance of models we tested after we got the new feature information from RDKit. 
 
-\begin{table}[h]
-\centering
-\begin{tabular}{llr}
- \toprule
- Model &  & RMSE \\
- \midrule
- \textsc{linear regression w/ 2048 features} & & 0.12364\\
- \textsc{linear regression w/ 429 features} & & 0.16869 \\
- \textsc{random forest w/ 2048 features} & & 0.06435 \\
- \textsc{neural network w/ 2048 features w/ 2 layers and 100 units in each layer} & & 0.03564  \\
- \textsc{neural network w/ 2048 features w/ 1000 units} & &0.03553 \\
- \textsc{neural network w/ 4096 features w/ 1024 units} & & 0.03461\\
- \bottomrule
-\end{tabular}
-\caption{\label{tab:results} MSE of models tested using new feature information from RDKit}
-\end{table}
+%\begin{table}[h]
+%\centering
+%\begin{tabular}{llr}
+% \toprule
+% Model &  & RMSE \\
+% \midrule
+% \textsc{linear regression w/ 2048 features} & & 0.12364\\
+% \textsc{linear regression w/ 429 features} & & 0.16869 \\
+% \textsc{random forest w/ 2048 features} & & 0.06435 \\
+% \textsc{neural network w/ 2048 features w/ 2 layers and 100 units in each layer} & & 0.03564  \\
+% \textsc{neural network w/ 2048 features w/ 1000 units} & &0.03553 \\
+% \textsc{neural network w/ 4096 features w/ 1024 units} & & 0.03461\\
+% \bottomrule
+%\end{tabular}
+%\caption{\label{tab:results} MSE of models tested using new feature information from RDKit}
+%\end{table}
 
 \begin{enumerate}
 \item Feature set selection
