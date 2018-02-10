@@ -3,9 +3,9 @@
 \usepackage{common}
 \usepackage{booktabs}
 \title{Practical 1: Regression \\ Predicting the Efficiency of Organic Photovoltaics}
-\author{Antonio (email, Camelot.ai username) \\
-	Fangli (fgeng@g.harvard.edu, Camelot.ai fangligeng) \\
-	Xihan (xihanzhang@hsph.harvard.edu, Camelot.ai Xihan)}
+\author{Antonio Copete (acopete@cfa.harvard.edu, Camelot.ai Copete) \\
+	Fangli Geng (fgeng@g.harvard.edu, Camelot.ai fangligeng) \\
+	Xihan Zhang (xihanzhang@hsph.harvard.edu, Camelot.ai Xihan)}
 \begin{document}
 
 
@@ -16,7 +16,7 @@
 
 \section{Technical Approach}
 
-We began by performing exploratory analysis on the sample dataset we were given, which consisted of a training set of 1 million molecules with 256 binary predictors, in addition to their SMILES string and the HOMO--LUMO gap we were seeking to predict. The test set consisted of 824,230 molecules with the same set of predictors as well as their SMILES string. The sample code we were given implemented a default Linear Regression model on the full set of 256 predictors, yielding an $R_\textrm{LR}^2 = 0.461 (\textrm{MSE}_\textrm{LR} = 0.089)$ over the full training set, and a default Random Forest regression with $R_\textrm{RF}^2 = 0.554 (\textrm{MSE}_\textrm{RF} = 0.074)$.
+We began by performing exploratory analysis on the sample dataset we were given, which consisted of a training set of 1 million molecules with 256 binary predictors, in addition to their SMILES string and the HOMO--LUMO gap we were seeking to predict. The test set consisted of 824,230 molecules with the same set of predictors as well as their SMILES string. The sample code we were given implemented a default Linear Regression model on the full set of 256 predictors, yielding an $R_\textrm{LR}^2 = 0.461 (\textrm{RMSE}_\textrm{LR} = 0.298)$ over the full training set, and a default Random Forest regression with $R_\textrm{RF}^2 = 0.554 (\textrm{RMSE}_\textrm{RF} = 0.272)$.
 
 Initial inspection found that out of 256 molecular features, 221 of them were unexpressed (i.e. had $x_i = 0$) for \emph{all} molecules, both in the training set and the test set. Dropping unimportant features would normally call for $K$-fold cross-validation across the training set to ensure those features are consistently unimportant in all cases. However, in the case of null values of certain features for every element of the training set, it is not only legitimate but necessary to drop those features from all further analysis, as fitting along null dimensions would constitute a form of overfitting.
 
@@ -24,16 +24,21 @@ Having reduced the sample dataset to 31 expressed molecular features, we perform
 
 \begin{enumerate}
 
-\item Non-regularized linear regression: Yields $R^2 =  ...$
-\item Ridge Regression: 
-\item Lasso:
-\item Elastic Net:
+\item Non-regularized linear regression: Yields a mean $R^2 = 0.461$ from 5-fold cross-validation, similar to the original result with 256 predictors.
+\item Ridge Regression: Tuning the hyperparamerter $\alpha$ by grid-search cross-validation results in an optimal value of $5.86 \times 10^{-5}$, with a best $R^2 = 0.459$, a result almost identical to non-regularized regression. 
+\item Elastic Net: Trying a more general regularization of the form $\alpha_1 L_1 \textrm{(Lasso)} + \alpha_2 L_2$ (Ridge regression), and tuning the $L_1 \textrm{ratio} \equiv \alpha_1/\alpha_2$ by grid-search cross validation, yields an optimal value of 0.0, which indicates that that a regularization biased towards sparse models, such as the Lasso, might not be the best choice in this case.
 
 \end{enumerate}
 
-The results from linear regression on the sample dataset consistently gave us low predictive value, even when compared to generic random forest regression, which led us into 2 parallel tracks:
+The results from linear regression on the sample dataset consistently gave us relatively low predictive value, even when compared to generic random forest regression, which led us into 2 parallel tracks:
 
 \begin{enumerate}
+
+\item Feature engineering: 
+
+The RDKit package in Python use the SMILES string to provide an array of information and functions about a molecule, including substructure searching, chemical reaction, enumeration of molecular resonance structures, and several sorts of fingerprints. From our research we decided to extract the \emph{Morgan fingerprint function}, which is widely used with SKLearn in ML and carries the information we considered to be most relevant to the efficiency of organic photovoltaics, such as: (a) Connectivity: Element, numbers of heavy neighbors, numbers of Hs, charge, isotope, inRing; (b) Chemical features: Donor, Acceptor, Aromatic, Halogen, Basic, Acidic; and (c) Taking into account the neighborhood of each atom.
+
+The process takes the ``SMILES'' column from the training and test data and uses RDKit to convert it into molecule objects, followed by gathering of the Morgan fingerprint by use of the command \verb|rdkit.Chem.getmorganfingerprintasbitvect()|, adjusting the parameter \verb|nBits| to 512, 2048 and 4096 aiming to test datasets with various precision levels. After iterating this process for each string, we appended the columns together to form a new input matrix. The size of the dataset greatly varies with precision level, and for this reason we had to slice the datasets into 8 parts in order to accommodate computational constraints.
 
 \item Non-linear methods: 
 
@@ -97,19 +102,7 @@ The result of this experiment showed that the MSE was not as sensitive to the ad
 
 
 \end{enumerate}
-\item Feature engineering: 
 
-Based on the regression, random forest and deep learning neural models we trained on original dataset, we found that those 256 features didn't yield as good results as we expected. Therefore, we were thinking how much improvement we could get by adding more information and went to explore the molecule strings and RDKit package in Python. \\
-
-RDKit provides all different kinds of information and functions about a molecule by recognizing its SIMLES strings, including substructure searching, chemical reaction, enumeration of molecular resonance structures, and several sorts of fingerprints. After our research, we decided to extract Morgan fingerprint function,as it is widely used with SKLearn in Machine Learning and it carries the information which we think is most relevant to the efficiency of organic photovoltaics. \\ 
-
-The information that Morgan fingerprint provides is displayed below:
-\begin{enumerate}
-\item Connectivity: Element, numbers of heavy neighbors, numbers of Hs, charge, isotope, inRing
-\item Chemical features: Donor, Acceptor, Aromatic, Halogen, Basic, Acidic
-\item Taking into account the neighborhood of each atom\\
-\end{enumerate}
-The process is first taking the "SMILES" column from the training and test data and using RDKit to convert it into molecule objects. Then for each molecule object, we implemented command {\itshape rdkit.Chem.getmorganfingerprintasbitvect()} to get Morgan fingerprint. After iterate this process for each string, we appended the columns together to form a new input matrix. During Morgan fingerprint extraction process, We mainly adjusted the parameter "nBits" to 512, 2048 and 4096 aiming to test datasets with various preciseness levels. As preciseness level increases, the size of dataset also increase largely. Due to the computational constraints, we decided to slice the datasets into 7 parts in order to reuse and avoid the memory crash. \\
 
 \end{enumerate}
 
@@ -188,11 +181,21 @@ As a summary, we found that the linear regression and random forest are good met
 \end{enumerate}
 
 \section{Discussion} 
-We performed exploratory analysis on the 256 features by fitting Linear Regression and Random forest as baseline models. For feature space, after filtering features with all 0 input, only 31 features left, which gave too little information compared to the 100000 data points. Thus, we use RDkit to generate 2048 features.  For model selection, we gave deeper dive into 2 tracks of non-linear models: Tree-based ensemble methods and deep learning, based on the fact: no matter tunning on linear methods the performance can't beat non-tuned random forest.
 
-Given the branch-like input nature, we first tried tree-based ensemble methods, which much more improve the performance on prediction. However, the fact that most portion of features are of little importance and the fact that each key in chemicals has high interaction with others, drove us to focus more on Deep learning method, which considers the interaction among features. The deep learning method did significantly improve the performance on prediction.
+{\itshape
+End your report by discussing the thought process behind your
+analysis. This section does not need to be as technical as the others 
+but should summarize why you took the approach that your did. Credit will be given for:
 
-One the other hand, the newly generated 2048 features also largely improved the precision of any kind of methods we experimented on 256 features. Thus our final prediction was made by deep learning method based on the 2048 features.
+  \begin{itemize}
+  \item Explaining the your reasoning for why you seqentially chose to
+    try the approaches you did (i.e. what was it about your initial
+    approach that made you try the next change?).  
+  \item Explaining the results.  Did the adaptations you tried improve
+    the results?  Why or why not?  Did you do additional tests to
+    determine if your reasoning was correct?  
+  \end{itemize}
+ }
 
 \end{document}
 
