@@ -3,6 +3,14 @@
 \usepackage{common}
 \usepackage{booktabs}
 \usepackage{wrapfig}
+\usepackage{titling}
+\usepackage{titlesec}
+\usepackage{float}
+\usepackage[margin=0.99in]{geometry}
+
+\titlespacing\section{0pt}{4pt}{2pt}
+\setlength{\parskip}{0.35em}
+\setlength{\droptitle}{-5em}
 \title{Practical 1: Regression \\ Predicting the Efficiency of Organic Photovoltaics}
 \author{Antonio Copete (acopete@cfa.harvard.edu, Camelot.ai Copete) \\
 	Fangli Geng (fgeng@g.harvard.edu, Camelot.ai fangligeng) \\
@@ -19,7 +27,7 @@ We began by performing exploratory analysis on the sample dataset we were given,
 
 Initial inspection found that out of 256 molecular features, 221 of them were unexpressed (i.e. had $x_i = 0$) for \emph{all} molecules, both in the training set and the test set. Dropping unimportant features would normally call for $K$-fold cross-validation across the training set to ensure those features are consistently unimportant in all cases. However, in the case of null values of certain features for every element of the training set, it is not only legitimate but necessary to drop those features from all further analysis, as fitting along null dimensions would constitute a form of overfitting.
 
-Having reduced the sample dataset to 31 expressed molecular features, we performed both regularized and non-regularized linear regression with cross-validation\footnote{After initially trying 3-fold, 5-fold and 10-fold cross-validation, we settled on 5-fold cross-validation as the best compromise between accuracy and computational speed.} and hyperparameter tuning, under the following methods:
+Reducing sample dataset to 31 expressed features, we performed both regularized and non-regularized linear regression with cross-validation\footnote{After initially trying 3-fold, 5-fold and 10-fold cross-validation, we settled on 5-fold cross-validation as the best compromise between accuracy and computational speed.} and hyperparameter tuning, under following methods:
 
 \begin{enumerate}
 
@@ -29,7 +37,7 @@ Having reduced the sample dataset to 31 expressed molecular features, we perform
 
 \end{enumerate}
 
-The results from linear regression on the sample dataset consistently gave us relatively low predictive value, even when compared to generic random forest regression, which led us into 2 parallel tracks:
+The results from linear regression on the sample dataset consistently gave us low predictive value, even when compared to generic random forest regression, which led us into 2 parallel tracks:
 
 %\begin{enumerate}
 
@@ -41,9 +49,7 @@ The RDKit package in Python use the SMILES string to provide an array of informa
 The process takes the ``SMILES'' column from the training and test data and uses RDKit to convert it into molecule objects, followed by gathering of the Morgan fingerprint by use of the command \verb|rdkit.Chem.getmorganfingerprintasbitvect()|, adjusting the parameter \verb|nBits| to 512, 2048 and 4096 aiming to test datasets with various precision levels. After iterating this process for each string, we appended the columns together to form a new input matrix. The size of the dataset greatly varies with precision level, and for this reason we had to slice the datasets into 8 parts in order to accommodate computational constraints.
 
 %\item 
-2. Non-linear methods: 
-
-Among these we concentrated on 2 broad categories:
+2. Non-linear methods (among these we concentrated on 2 broad categories):
 
 %\begin{enumerate}
 
@@ -58,10 +64,10 @@ From the results, we concluded that 13 estimators is sufficient to make the MSE 
 
 The distribution of predictor importances from the baseline random forest is plotted below:
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{his_feature_importance}
-\caption{Histogram of feature importances from Random Forest}
+\caption{Distribution of feature importances from Random Forest}
 \label{fig:his_feature_importance}
 \end{figure}
 
@@ -74,7 +80,8 @@ Though most predictors have little importance ($10^{-8}$--$10^{-2}$), combining 
 %\end{enumerate}
 
 In order to model the interactions that would be expected among the broad set of molecular properties extracted from RDKit, we decided to explore the training of simple neural networks and got acquainted with the basics of Deep Learning as a tool for this problem. In all cases, we used an architecture of one or more dense (fully-connected) hidden layers between the input layer of $N$ parameters and the output layer of 1 node for the response we wanted to model. For each node in the hidden layers, we used the widely used ``relu'' function $ f(x) = {\tiny \begin{cases} 0 & \text{if } x \le 0 \\ x & \text{if } x>0 \end{cases}}$ as activation function. We trained the model using the \emph{keras} module in Python, using the \emph{Adam} optimizer for the learning rate, setting aside 20\% of training data for validation. The model fits for the weights of the connections between pairs of nodes in the network, which in the case of 1 hidden layer with $M$ nodes, would result in $(N + 1) \times M$ parameters to be trained.
-\begin{wrapfigure}[15]{r}{0.5\textwidth}
+
+\begin{wrapfigure}[16]{r}{0.5\textwidth}
 \centering
 \includegraphics[width=0.5\textwidth]{DL_mse_AC.pdf}
 \caption{MSEs of Neural Network architectures}
@@ -115,7 +122,7 @@ Figure \ref{fig:results} shows the overall results we obtained from a wide array
 %\caption{\label{tab:results} MSE of models tested using new feature information from RDKit}
 %\end{table}
 
-One evident result is the marked improvement in the predictive value of feature-engineered models employing a large number of predictors (429/1571/2048/4096), compared to those from the sample dataset (31/256). Within models of comparable numbers of predictors, linear regression performed relatively poorly, indicating the non-linear interactions between features that are likely to result in the correct HOMO--LUMO gaps. Our 2 best results in the Camelot table came from employing neural network models, one with 4096 features and 1 hidden layer of X nodes (Fangli please fill in here), and another with 1571 features and 1 hidden layer of 500 nodes. These results ranked 9 (RMSE = 0.03461) and 11 (RMSE = 0.0359) in the final table, both in the top 10\% of scores.
+One evident result is the marked improvement in the predictive value of feature-engineered models employing a large number of predictors (429/1571/2048/4096), compared to those from the sample dataset (31/256). Within models of comparable numbers of predictors, linear regression performed relatively poorly, indicating the non-linear interactions between features that are likely to result in the correct HOMO--LUMO gaps. Our 2 best results in the Camelot table came from employing neural network models, one with 4096 features and 1 hidden layer of 1000 nodes, and another with 1571 features and 1 hidden layer of 500 nodes. These results ranked 9 (RMSE = 0.03461) and 11 (RMSE = 0.0359) in the final table, both in the top 10\% of scores.
 
 
 %\begin{enumerate}
@@ -160,9 +167,12 @@ One evident result is the marked improvement in the predictive value of feature-
 %\end{enumerate}
 
 \section{Discussion} 
-We performed exploratory analysis on the 256 features by fitting Linear Regression and Random forest as baseline models. For feature space, after filtering features with all 0 input, only 31 features left, which gave too little information compared to the 100000 data points. Thus, we use RDkit to generate 2048 features.  For model selection, we gave deeper dive into 2 tracks of non-linear models: Tree-based ensemble methods and deep learning, based on the fact: no matter tunning on linear methods the performance can't beat non-tuned random forest.
+We started with exploratory analysis on the sample dataset with 256 features by fitting Linear Regression and Random forest as baseline models, and tried to under standard the basic relationships between the data and given features. Then we started tuning the parameters within linear regressions and Random Forest to see how much we could improve upon the current data. After seeing the insignificant improvements, we started to experimenting in Deep Learning model with selected important features. We found Deep Learning model provided the most accurate results so far, and the reason would be allowing features interactions within molecules. Therefore, we decided to focus on Neural Network models further on. Meanwhile, we pulled Morgan Fingerprint features by RDKit in two sizes of Bits and produced 2048 and 4096 features. 
 
-Given the branch-like input nature, we first tried tree-based ensemble methods, which much more improve the performance on prediction. However, the fact that most portion of features are of little importance and the fact that each key in chemicals has high interaction with others, drove us to focus more on Deep learning method, which considers the interaction among features. The deep learning method did significantly improve the performance on prediction.
+Considering computational power and time, we also tried to drop the features within 2048 features, based on feature importance yield from Regression RF models. Finally, based on the all previous experiments, we set up 3 configurations for neural network models: 2 layer with 2048 features and 100 units in each layer (RMSE=0.03564), 1 layer with 2048 features with 1000 units (RMSE=0.03553), 1 layer with 4096 features with 1024 units (RMSE=0.03461). Comparing the former two, we found the layer number is still not as important as unit number, which is consistent with what we found using sample dataset. Comparing the latter two, we found 2048 Morgan fingerprint is basically informative enough to predict, and 4096 features in more detail couldn't improve the prediction as much but meanwhile taking a much larger amount of time for computation.
 
-One the other hand, the newly generated 2048 features also largely improved the precision of any kind of methods we experimented on 256 features. Thus our final prediction was made by deep learning method based on the 2048 features.
+Additionally, we turned to find additional features and found counted-based fingerprints could be a good option in addition to the bit-based fingerprint, since it count-based fingerprint count the number of times a feature appears instead of simply that it appears. It may provide new and important information to our prediction. Furthermore, we wanted to try other algorithms like Principal Component Analysis to select more important features to reduce computational complexity, and to implement neural network models with 2 layer and 2000 nodes to allow more complex interactions between selected important features. However, due to the time constraints we had, we didn't realize those plans.
+
+As a summary, we found that the linear regression and random forest are good methods to rapidly select useful features. Neural network is much more accurate in non-linear regression, especially with large dataset and rich features condition.
+
 \end{document}
